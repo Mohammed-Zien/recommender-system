@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+
+# Model artifacts and large assets
+app/model_assets/
+!app/model_assets/__init__.py
+
+# IDE and editor folders
+.vscode/
