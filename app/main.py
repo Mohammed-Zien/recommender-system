@@ -8,16 +8,19 @@ import recommender
 
 app = FastAPI()
 
-assets = utils.download_all_assets()
-
 # Access components
-tfidf_embeddings = assets["tfidf_embeddings"]
-tfidf_model = assets["tfidf_model"]
-bert_embeddings = assets["bert_embeddings"]
-bert_model = assets["bert_model"]
-news = assets["news"]
-behaviors = assets["behaviors"]
-item_sim_df = assets["item_sim_df"]
+print("LOADING TF-IDF MODEL")
+tfidf_embeddings, tfidf_model = utils.load_tfidf("F:\projects\Porfolio\\recommender-system\\app\model_assets\\tfidf_embeddings.npz",
+                                     "F:\projects\Porfolio\\recommender-system\\app\model_assets\\tfidf_vectorizer.pkl")
+
+print("LOADING BERT MODEL")
+bert_embeddings, bert_model= utils.load_bert("F:\projects\Porfolio\\recommender-system\\app\model_assets\\bert_embeddiings.pt",
+                                   "F:\projects\Porfolio\\recommender-system\\app\model_assets\\bert_model")
+
+print("LOADING ASSETS")
+news = utils.load_news_data("F:\projects\Porfolio\\recommender-system\\app\model_assets\\news.tsv")
+behaviors = utils.load_news_data("F:\projects\Porfolio\\recommender-system\\app\model_assets\\behaviors.tsv")
+item_sim_df = utils.load_item_sim_df("F:\\projects\\Porfolio\\recommender-system\\app\model_assets\\item_sim_df.pkl")
 
 class NewsItem(BaseModel):
     Category: str
