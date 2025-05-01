@@ -53,13 +53,12 @@ def bert_recommendation(news, target, embedding_bank, model, topk=10):
 
     return top_simil
 class HybridRecommender:
-    def __init__(self, news, target, embeddings, model, item_sim_df,
+    def __init__(self, news, embeddings, model, item_sim_df,
                  mode="bert", alpha=0.5, topk=10):
         """
         mode: "bert" or "tfidf"
         """
         self.data = news  # full sorted news data (indexed)
-        self.target = target  # row of the target article
         self.embeddings = embeddings
         self.model = model
         self.item_sim_df = item_sim_df  # sparse DF
@@ -68,16 +67,17 @@ class HybridRecommender:
         self.mode = mode
 
     def recommend(self, target_id):
-        content_score = self.calculate_content_score()
+        content_score = self.calculate_content_score(target_id)
         cf_score = self.calculate_cf_score(target_id)
         return self.combine_scores(content_score, cf_score)
 
-    def calculate_content_score(self):
+    def calculate_content_score(self, target_id):
+        target = self.data.loc[target_id]
         content = (
-            self.target["Category"] + " " +
-            self.target["Subcategory"] + " " +
-            self.target["News Title"] + " " +
-            self.target["News Abstract"]
+            target["Category"] + " " +
+            target["Subcategory"] + " " +
+            target["News Title"] + " " +
+            target["News Abstract"]
         )
 
         if self.mode == "bert":
