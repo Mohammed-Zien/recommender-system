@@ -52,8 +52,6 @@ def bert_recommendation(news, target, embedding_bank, model, topk=10):
                    for i in topk_indices]
 
     return top_simil
-
-    
 class HybridRecommender:
     def __init__(self, news, target, embeddings, model, item_sim_df,
                  mode="bert", alpha=0.5, topk=10):
@@ -133,4 +131,4 @@ class HybridRecommender:
         result_df["hybrid_score"] = np.round(self.alpha * result_df["content_score"] + (1 - self.alpha) * result_df["cf_score"], 4)
 
         return result_df.sort_values("hybrid_score", ascending=False).head(self.topk).to_dict(orient="records")
-        
+

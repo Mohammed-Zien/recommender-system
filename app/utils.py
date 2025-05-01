@@ -45,3 +45,6 @@ def load_behaviors_data(path):
     return pd.read_csv(path,
                        names=["Impression ID", "User ID", "Impression Time", "User Click History", "Impression News"],
                        delimiter="\t")
+
+def get_user_clicks(users):
+    return users[["User ID", "User Click History"]].fillna("").groupby("User ID")["User Click History"].apply(lambda list : sum(list.str.split(), [])).to_dict()
