@@ -7,3 +7,4 @@ gensim
 sentence_transformers
 fastapi
 uvicorn
+streamlit

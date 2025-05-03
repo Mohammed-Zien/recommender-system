@@ -20,8 +20,8 @@ def add_news_item(news_df, news_path, item: dict):
     new_row = pd.DataFrame([{
         "Category": item["Category"],
         "Subcategory": item["Subcategory"],
-        "News Title": item["News_Title"],
-        "News Abstract": item["News_Abstract"],
+        "News Title": item["News_Title"],  # KEEP
+        "News Abstract": item["News_Abstract"],  # KEEP
         "News Url": item.get("News_Url", []),
         "Entities in News Title": item.get("Entities_in_News_Title", []),
         "Entities in News Abstract": item.get("Entities_in_News_Abstract", [])

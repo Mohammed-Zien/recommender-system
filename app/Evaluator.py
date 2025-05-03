@@ -1,6 +1,5 @@
 import numpy as np
 
-
 class Evaluator:
     def __init__(self, recommender, user_clicks, k=10):
         self.recommender = recommender
