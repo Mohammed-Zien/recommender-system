@@ -29,7 +29,7 @@ COPY --from=builder /app /app
 ENV PATH=/root/.local/bin:$PATH
 
 # Set permissions and expose port
-RUN chmod +x /app/start.sh
-EXPOSE 8501
-
-CMD ["bash", "/app/start.sh"]
+EXPOSE 8000 8501
+COPY start.sh .
+RUN chmod +x start.sh
+CMD ["./start.sh"]
