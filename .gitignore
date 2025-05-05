@@ -1,15 +1,65 @@
 # Python
 __pycache__/
 *.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
 
-# Virtual environments
-.venv/
+# Virtual Environment
+venv/
+ENV/
+env/
 
-# Model artifacts and large assets
-app/model_assets/
-!app/model_assets/__init__.py
-
-# IDE and editor folders
+# IDE
+.idea/
 .vscode/
+*.swp
+*.swo
 
-*.pyc
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Model files and datasets
+*.h5
+*.pkl
+*.bin
+*.pt
+model_assets/
+cache/
+.cache/
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+logs/
+*.log
+
+# Docker
+.docker/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Generated files
+generated/
+output/
+results/

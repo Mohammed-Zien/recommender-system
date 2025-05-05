@@ -1,35 +1,58 @@
-# Stage 1: Build
-FROM python:3.11-slim as builder
+# Multi-stage build for smaller image size
+FROM python:3.10-slim AS builder
 
 WORKDIR /app
 
-# Install build dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Install pip requirements
+# Copy requirements first for better caching
 COPY requirements.txt .
-RUN pip install --upgrade pip \
-    && pip install --user --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY app/ ./app/
-COPY start.sh .
+# Create a virtual environment and install dependencies
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-# Stage 2: Runtime
-FROM python:3.11-slim
+# Install CPU-only PyTorch to reduce image size
+RUN pip install --no-cache-dir torch==2.1.0 --index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Second stage: runtime image
+FROM python:3.10-slim
 
 WORKDIR /app
 
-# Copy only necessary files from builder
-COPY --from=builder /root/.local /root/.local
-COPY --from=builder /app /app
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-ENV PATH=/root/.local/bin:$PATH
+# Install only runtime system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set permissions and expose port
+# Copy application code
+COPY . .
+
+# Download NLTK data during build to avoid runtime downloads
+RUN python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
+
+# Create non-root user for security
+RUN useradd -m appuser
+USER appuser
+
+# Expose ports for FastAPI and Streamlit
 EXPOSE 8000 8501
-COPY start.sh .
-RUN chmod +x start.sh
-CMD ["./start.sh"]
+
+# Create a volume mount point for model assets
+VOLUME ["/app/model_assets"]
+
+# Use entrypoint script to start either FastAPI or Streamlit based on args
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+ENTRYPOINT ["docker-entrypoint.sh"]
+
+# Default command (can be overridden)
+CMD ["api"]
