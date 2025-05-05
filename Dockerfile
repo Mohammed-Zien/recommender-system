@@ -1,57 +1,31 @@
-# Multi-stage build for smaller image size
-FROM python:3.10-slim AS builder
+    FROM python:3.10-slim
 
-WORKDIR /app
+    WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+    # Avoid interactive prompts
+    ENV DEBIAN_FRONTEND=noninteractive
 
-# Copy requirements first for better caching
-COPY requirements.txt .
+    # Install OS packages
+    RUN apt-get update && apt-get install -y \
+        build-essential \
+        git \
+        libglib2.0-0 \
+        libsm6 \
+        libxext6 \
+        libxrender-dev \
+        && rm -rf /var/lib/apt/lists/*
 
-# Create a virtual environment and install dependencies
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+    # Copy files
+    COPY . .
 
-# Install dependencies (torch version is pinned inside requirements.txt)
-RUN pip install --no-cache-dir -r requirements.txt
+    # Install Python deps
+    RUN pip install --no-cache-dir --upgrade pip && \
+        pip install --no-cache-dir -r requirements.txt
 
-# Second stage: runtime image
-FROM python:3.10-slim
+    EXPOSE 8501
 
-WORKDIR /app
+    COPY start.sh .
+    RUN chmod +x start.sh
 
-# Copy virtual environment from builder
-COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+    CMD ["./start.sh"]
 
-# Install only runtime system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgomp1 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy application code
-COPY . .
-
-# Download NLTK data during build to avoid runtime downloads
-RUN python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
-
-# Create non-root user for security
-RUN useradd -m appuser
-USER appuser
-
-# Expose ports for FastAPI and Streamlit
-EXPOSE 8000 8501
-
-# Create a volume mount point for model assets
-VOLUME ["/app/model_assets"]
-
-# Use entrypoint script to start either FastAPI or Streamlit based on args
-COPY entrypoint_script.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/entrypoint_script.sh
-ENTRYPOINT ["entrypoint_script.sh"]
-
-# Default command (can be overridden)
-CMD ["api"]

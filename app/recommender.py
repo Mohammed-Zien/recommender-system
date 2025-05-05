@@ -1,5 +1,5 @@
 import numpy as np
-from app import utils
+import utils
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers.util import cos_sim

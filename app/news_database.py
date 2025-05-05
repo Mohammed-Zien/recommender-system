@@ -1,10 +1,9 @@
 import pandas as pd
+import torch
 import joblib
-import numpy as np
 from scipy.sparse import vstack, save_npz, load_npz
-from transformers import AutoTokenizer
-from optimum.onnxruntime import ORTModelForFeatureExtraction
-from app import utils
+from sentence_transformers import SentenceTransformer
+import utils
 
 def load_news_database(news_path):
     return utils.load_news_data(news_path)
@@ -32,18 +31,14 @@ def add_news_item(news_df, news_path, item: dict):
     return news_df
 
 def update_bert_embedding(news_item, bert_model_path, bert_embedding_path):
-    tokenizer = AutoTokenizer.from_pretrained(bert_model_path)
-    model = ORTModelForFeatureExtraction.from_pretrained(bert_model_path)
-
+    model = SentenceTransformer(bert_model_path)
     content = f'{news_item["Category"]} {news_item["Subcategory"]} {news_item["News_Title"]} {news_item["News_Abstract"]}'
     content = utils.clean_text(content)
+    embedding = model.encode(content, convert_to_tensor=True)
     
-    inputs = tokenizer(content, return_tensors="np", truncation=True, padding=True)
-    embedding = model(**inputs).last_hidden_state[:, 0, :]  # shape: (1, hidden_size)
-    
-    existing_embeddings = np.load(bert_embedding_path)
-    updated_embeddings = np.concatenate([existing_embeddings, embedding], axis=0)
-    np.save(bert_embedding_path, updated_embeddings)
+    existing_embeddings = torch.load(bert_embedding_path)
+    updated_embeddings = torch.cat([existing_embeddings, embedding.unsqueeze(0)], dim=0)
+    torch.save(updated_embeddings, bert_embedding_path)
 
 def update_tfidf_embedding(news_item, tfidf_model_path, tfidf_embedding_path):
     model = joblib.load(tfidf_model_path)
@@ -68,13 +63,13 @@ def delete_news_item(news_id: str, news_path, bert_path, tfidf_path):
     save_news_database(news_df, news_path)
 
     # Update embeddings
-    bert_embeddings = np.load(bert_path)
+    bert_embeddings = torch.load(bert_path)
     tfidf_embeddings = load_npz(tfidf_path)
 
-    updated_bert = np.concatenate([bert_embeddings[:row_idx], bert_embeddings[row_idx+1:]], axis=0)
+    updated_bert = torch.cat([bert_embeddings[:row_idx], bert_embeddings[row_idx+1:]], dim=0)
     updated_tfidf = vstack([tfidf_embeddings[:row_idx], tfidf_embeddings[row_idx+1:]])
 
-    np.save(bert_path, updated_bert)
+    torch.save(updated_bert, bert_path)
     save_npz(tfidf_path, updated_tfidf)
 
     return news_df
@@ -100,19 +95,17 @@ def update_news_item(news_id: str, news_path, item: dict, bert_path, tfidf_path,
 
     save_news_database(news_df, news_path)
 
+
     # Clean text
     content = f"{item['Category']} {item['Subcategory']} {item['News_Title']} {item['News_Abstract']}"
     content = utils.clean_text(content)
 
     # Update BERT
-    tokenizer = AutoTokenizer.from_pretrained(bert_model_path)
-    model = ORTModelForFeatureExtraction.from_pretrained(bert_model_path)
-    inputs = tokenizer(content, return_tensors="np", truncation=True, padding=True)
-    new_bert_vec = model(**inputs).last_hidden_state[:, 0, :]  # shape: (1, hidden_size)
-    
-    bert_embeddings = np.load(bert_path)
+    bert_model = SentenceTransformer(bert_model_path)
+    new_bert_vec = bert_model.encode(content, convert_to_tensor=True)
+    bert_embeddings = torch.load(bert_path)
     bert_embeddings[row_idx] = new_bert_vec
-    np.save(bert_path, bert_embeddings)
+    torch.save(bert_embeddings, bert_path)
 
     # Update TF-IDF
     tfidf_model = joblib.load(tfidf_model_path)

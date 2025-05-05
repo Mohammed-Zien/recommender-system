@@ -1,19 +1,19 @@
 import re
 import string
 import joblib
-import numpy as np
+import torch
 import pandas as pd
 from scipy.sparse import load_npz
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
-from transformers import AutoTokenizer
-from optimum.onnxruntime import ORTModelForFeatureExtraction
+from sentence_transformers import SentenceTransformer
+
 
 def load_tfidf(emb_path, model_path):
     return load_npz(emb_path), joblib.load(model_path)
 
 def load_bert(emb_path, model_path):
-    return np.load(emb_path), ORTModelForFeatureExtraction.from_pretrained(model_path)
+    return torch.load(emb_path), SentenceTransformer(model_path)
 
 def load_item_sim_df(path):
     return pd.read_pickle(path)

@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import Optional, Literal
 from pathlib import Path
 import random
-from app import utils, recommender, news_database, Evaluator
+import utils, recommender, news_database, Evaluator
 
 # Base directory setup
 BASE_DIR = Path(__file__).resolve().parent
