@@ -1,14 +1,8 @@
-from ctypes import util
 import numpy as np
-import utils
+from app import utils
 import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.preprocessing import MultiLabelBinarizer
-from scipy import sparse
 from sklearn.metrics.pairwise import cosine_similarity
-from datetime import datetime
 from sentence_transformers.util import cos_sim
-import torch
 
 def tfidf_recommendation(news, target, embedding_bank, model, topk=10):
     content = target["Category"] + " " + target["Subcategory"] + " " + target["News Title"] + " " + target["News Abstract"]

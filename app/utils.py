@@ -1,4 +1,3 @@
-import os
 import re
 import string
 import joblib
@@ -8,7 +7,6 @@ from scipy.sparse import load_npz
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from sentence_transformers import SentenceTransformer
-from huggingface_hub import hf_hub_download
 
 
 def load_tfidf(emb_path, model_path):

@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import Optional, Literal
 from pathlib import Path
 import random
-import utils
+from app import utils
 import recommender
 import news_database
 import Evaluator

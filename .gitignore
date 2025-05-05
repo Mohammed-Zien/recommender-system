@@ -11,3 +11,5 @@ app/model_assets/
 
 # IDE and editor folders
 .vscode/
+
+*.pyc

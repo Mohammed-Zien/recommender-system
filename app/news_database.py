@@ -3,8 +3,7 @@ import torch
 import joblib
 from scipy.sparse import vstack, save_npz, load_npz
 from sentence_transformers import SentenceTransformer
-import utils
-from scipy.sparse import lil_matrix
+from app import utils
 
 def load_news_database(news_path):
     return utils.load_news_data(news_path)
