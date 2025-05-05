@@ -15,8 +15,7 @@ COPY requirements.txt .
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Install CPU-only PyTorch to reduce image size
-RUN pip install --no-cache-dir torch==2.1.0 --index-url https://download.pytorch.org/whl/cpu
+# Install dependencies (torch version is pinned inside requirements.txt)
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Second stage: runtime image
@@ -50,9 +49,9 @@ EXPOSE 8000 8501
 VOLUME ["/app/model_assets"]
 
 # Use entrypoint script to start either FastAPI or Streamlit based on args
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-ENTRYPOINT ["docker-entrypoint.sh"]
+COPY entrypoint_script.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint_script.sh
+ENTRYPOINT ["entrypoint_script.sh"]
 
 # Default command (can be overridden)
 CMD ["api"]

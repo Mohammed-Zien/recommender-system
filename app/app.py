@@ -60,7 +60,6 @@ with tab2:
             else:
                 st.error(r.json()["detail"])
 
-
 # --- UPDATE TAB ---
 with tab3:
     st.header("Update News Item")
