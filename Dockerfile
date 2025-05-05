@@ -1,34 +1,35 @@
-FROM python:3.11.2-slim
+# Stage 1: Build
+FROM python:3.11-slim as builder
 
-# Use Google's DNS
+WORKDIR /app
 
-# Avoid interactive prompts during build
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Set work directory
-WORKDIR /code
-
-# Copy everything into the image
-COPY . .
-
-# Install required system packages
-RUN apt-get update && apt-get install -y \
-    curl \
-    git \
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-RUN pip install --upgrade pip
+# Install pip requirements
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --upgrade pip \
+    && pip install --user --no-cache-dir -r requirements.txt
 
+# Copy application code
+COPY app/ ./app/
+COPY start.sh .
 
-# Download NLTK data
-RUN python -m nltk.downloader punkt wordnet stopwords
+# Stage 2: Runtime
+FROM python:3.11-slim
 
-# Expose backend and frontend ports
-EXPOSE 7860
-EXPOSE 8000
+WORKDIR /app
 
-# Run both FastAPI and Streamlit via start.sh
-CMD ["./start.sh"]
+# Copy only necessary files from builder
+COPY --from=builder /root/.local /root/.local
+COPY --from=builder /app /app
+
+ENV PATH=/root/.local/bin:$PATH
+
+# Set permissions and expose port
+RUN chmod +x /app/start.sh
+EXPOSE 8501
+
+CMD ["bash", "/app/start.sh"]
