@@ -1,13 +1,17 @@
+import os
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from typing import Optional, Literal
 from pathlib import Path
 import random
-import utils, recommender, news_database, Evaluator
+from app import utils, recommender, news_database, Evaluator
 
 # Base directory setup
 BASE_DIR = Path(__file__).resolve().parent
 ASSETS_DIR = BASE_DIR / "model_assets"
+
+print("ASSETS_DIR =", ASSETS_DIR)
+print("Files:", os.listdir(ASSETS_DIR))
 
 app = FastAPI()
 
@@ -51,7 +55,7 @@ def get_hybrid_simil(
         raise HTTPException(status_code=404, detail="News ID not found")
 
     if model == "bert":
-        embeddings, embed_model = utils.load_bert(str(ASSETS_DIR / "bert_embeddiings.pt"), str(ASSETS_DIR / "bert_model"))
+        embeddings, embed_model = utils.load_bert(str(ASSETS_DIR / "bert_embeddings.pt"), str(ASSETS_DIR / "bert_model"))
     else:
         embeddings, embed_model = utils.load_tfidf(str(ASSETS_DIR / "tfidf_embeddings.npz"), str(ASSETS_DIR / "tfidf_vectorizer.pkl"))
 
@@ -72,7 +76,7 @@ def add_news(item: NewsItem):
         news_df = utils.load_news_data(str(ASSETS_DIR / "news.tsv"))
         news_database.add_news_item(news_df, str(ASSETS_DIR / "news.tsv"), item.model_dump())
 
-        news_database.update_bert_embedding(item.model_dump(), str(ASSETS_DIR / "bert_model"), str(ASSETS_DIR / "bert_embeddiings.pt"))
+        news_database.update_bert_embedding(item.model_dump(), str(ASSETS_DIR / "bert_model"), str(ASSETS_DIR / "bert_embeddings.pt"))
         news_database.update_tfidf_embedding(item.model_dump(), str(ASSETS_DIR / "tfidf_vectorizer.pkl"), str(ASSETS_DIR / "tfidf_embeddings.npz"))
 
         return {"status": "success", "message": f'News "{item.News_ID}" added and encoded.'}
@@ -89,7 +93,7 @@ def update_news_item_endpoint(news_id: str, item: NewsItem):
             news_id,
             str(ASSETS_DIR / "news.tsv"),
             item.model_dump(),
-            str(ASSETS_DIR / "bert_embeddiings.pt"),
+            str(ASSETS_DIR / "bert_embeddings.pt"),
             str(ASSETS_DIR / "tfidf_embeddings.npz"),
             str(ASSETS_DIR / "bert_model"),
             str(ASSETS_DIR / "tfidf_vectorizer.pkl")
@@ -107,7 +111,7 @@ def delete_news_item_endpoint(news_id: str):
         news_database.delete_news_item(
             news_id,
             str(ASSETS_DIR / "news.tsv"),
-            str(ASSETS_DIR / "bert_embeddiings.pt"),
+            str(ASSETS_DIR / "bert_embeddings.pt"),
             str(ASSETS_DIR / "tfidf_embeddings.npz")
         )
         return {"status": "success", "message": f"{news_id} deleted."}
@@ -128,7 +132,7 @@ def evaluate_recommender(
     user_click_sample = utils.get_user_clicks(behaviors)
 
     if model == "bert":
-        embeddings, embed_model = utils.load_bert(str(ASSETS_DIR / "bert_embeddiings.pt"), str(ASSETS_DIR / "bert_model"))
+        embeddings, embed_model = utils.load_bert(str(ASSETS_DIR / "bert_embeddings.pt"), str(ASSETS_DIR / "bert_model"))
     else:
         embeddings, embed_model = utils.load_tfidf(str(ASSETS_DIR / "tfidf_embeddings.npz"), str(ASSETS_DIR / "tfidf_vectorizer.pkl"))
 
